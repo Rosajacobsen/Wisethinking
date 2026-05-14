@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  Meta-refleksionsprototype til Wisethinking.ai
+  ------------------------------------------------------------
+  README (filstruktur):
+    - index.html       Semantisk HTML-struktur for alle skærme (states)
+    - style.css        Al styling (farver, layout, slider, animationer)
+    - translations.js  Alle UI-tekster på dansk (default) og engelsk
+    - script.js        Al logik: state-håndtering, localStorage, slider, sprog
+
+  Datamodel i localStorage (nøgle: metaReflection_v1):
+    {
+      language: "da" | "en",
+      emotionalCheckInBefore: { moodPercent, timestamp },
+      intentionMessage:       { text, timestamp },
+      journeyStatus:          { started, completed },
+      emotionalCheckInAfter:  { moodPercent, timestamp },
+      finalReflection:        { text, timestamp, copiedToClipboard, sharingChoice, sharingTimestamp },
+      futureMessage:          { text, deliveryDate, delivered }
+    }
+
+  Sådan arbejder filerne sammen:
+    1. index.html indlæser style.css i <head> og scripts i bunden af <body>.
+    2. translations.js indlæses FØR script.js, så scriptet kan læse 'translations'.
+    3. script.js viser kun én <section class="state"> ad gangen ved at toggle
+       en CSS-klasse 'is-active'. Al state-overgang og localStorage-skrivning
+       sker via funktioner i script.js.
+  ============================================================
+-->
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1024" />
+  <title>Flaskepost — Meta-refleksion</title>
+
+  <!-- Google Fonts: Lora (wisethinkings brand-font) — vægte 400, 500, 700 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Vores egen stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- =================================================================
+       Besked når skærmen er for smal (< 1024px)
+       Vises via CSS media query — JS gør intet her.
+       ================================================================= -->
+  <div class="small-screen-block" id="small-screen-block">
+    <p data-i18n="smallScreenMessage">Denne prototype er designet til computer. Åbn venligst på en større skærm.</p>
+  </div>
+
+  <!-- =================================================================
+       Sprog-toggle — synlig på alle skærme i øverste højre hjørne
+       Klik skifter mellem 'da' og 'en' (håndteres i script.js)
+       ================================================================= -->
+  <header class="top-bar">
+    <button
+      type="button"
+      class="lang-toggle"
+      id="lang-toggle"
+      aria-label="Skift sprog / Change language">
+      <span class="lang-option" id="lang-da">DA</span>
+      <span class="lang-divider">/</span>
+      <span class="lang-option" id="lang-en">EN</span>
+    </button>
+  </header>
+
+  <!-- Det halvtransparente flaskepost-ikon i hjørnet (vises efter intention er sendt) -->
+  <div class="sealed-bottle-corner" id="sealed-bottle-corner" hidden>
+    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+      <!-- Simpelt SVG-flaskepost: hals + krop + papir-rulle -->
+      <rect x="17" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.6"/>
+      <path d="M14 12 Q14 10 16 10 L24 10 Q26 10 26 12 L26 32 Q26 36 22 36 L18 36 Q14 36 14 32 Z"
+            fill="currentColor" opacity="0.5"/>
+      <rect x="17" y="18" width="6" height="12" rx="0.5" fill="#fffcf9" opacity="0.9"/>
+    </svg>
+    <span class="sr-only" data-i18n="bottleTooltip">Din flaskepost åbnes når du har gennemført din journey</span>
+    <span class="tooltip" data-i18n="bottleTooltip">Din flaskepost åbnes når du har gennemført din journey</span>
+  </div>
+
+  <!-- =================================================================
+       MAIN — alle states ligger her, kun én er .is-active ad gangen
+       ================================================================= -->
+  <main id="app">
+
+    <!-- ============================================================
+         STATE 1 — Velkomst
+         ============================================================ -->
+    <section class="state state-welcome is-active" id="state-welcome" aria-labelledby="welcome-title">
+      <div class="state-inner narrow">
+        <h1 id="welcome-title" data-i18n="welcomeTitle">Velkommen til din flaskepost</h1>
+        <p class="subtitle" data-i18n="welcomeSubtitle">Et rum til refleksion før og efter din Reflection Journey.</p>
+        <p class="body" data-i18n="welcomeBody">Inden du begynder, skriver du en besked til dig selv — en flaskepost, du modtager når journey'en er færdig. Bagefter læser du den igen og reflekterer over hvad der har ændret sig undervejs.</p>
+        <p class="time-estimate" data-i18n="welcomeTimeEstimate">Du kan bruge omkring 10 minutter her før din journey og 5–10 minutter efter.</p>
+
+        <button type="button" class="btn-primary" id="welcome-start-btn" data-i18n="welcomeStartButton">Begynd</button>
+
+        <p class="privacy-note" data-i18n="welcomePrivacyNote">Alt du skriver gemmes kun lokalt i din browser.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 2 — Emotional check-in FØR journey
+         (Slider med skib og hav — samme komponent bruges også i State 6)
+         ============================================================ -->
+    <section class="state state-mood" id="state-mood-before" aria-labelledby="mood-before-title">
+      <div class="state-inner">
+        <h2 id="mood-before-title" data-i18n="moodBeforeTitle">Hvordan er det indeni nu?</h2>
+        <p class="subtitle" data-i18n="moodBeforeSubtitle">Flyt skibet derhen hvor du står.</p>
+
+        <!-- Slider-komponenten — JS bygger skib, vand og skyer ind i denne -->
+        <div class="mood-slider-wrapper">
+          <!-- Skyer ligger uden for cirklen, kommer til syne ved højere procent -->
+          <div class="clouds-layer" id="clouds-before" aria-hidden="true"></div>
+
+          <!-- Selve slider-cirklen: ydre + indre -->
+          <div
+            class="mood-slider"
+            id="mood-slider-before"
+            role="slider"
+            tabindex="0"
+            aria-valuemin="1"
+            aria-valuemax="99"
+            aria-valuenow="1"
+            aria-label="Emotionelt check-in slider — flyt skibet med musen eller piletasterne">
+            <div class="mood-water" id="mood-water-before" aria-hidden="true"></div>
+            <div class="mood-inner-circle">
+              <span class="mood-level-text" id="mood-level-before">Stille vande</span>
+              <span class="mood-percent" id="mood-percent-before">1<span data-i18n="moodPercentLabel">%</span></span>
+              <button type="button" class="btn-primary mood-confirm-btn" id="mood-confirm-before" data-i18n="moodConfirmButton">Bekræft</button>
+            </div>
+            <!-- Skibet — bevæger sig langs cirklens kant -->
+            <div class="ship" id="ship-before" aria-hidden="true">
+              <svg viewBox="0 0 30 30" width="30" height="30">
+                <!-- Skrog -->
+                <path d="M4 20 L26 20 L23 26 L7 26 Z" fill="#3b31c8"/>
+                <!-- Mast -->
+                <line x1="15" y1="6" x2="15" y2="20" stroke="#3b31c8" stroke-width="1.5"/>
+                <!-- Sejl -->
+                <path d="M15 7 L23 19 L15 19 Z" fill="#fffcf9" stroke="#3b31c8" stroke-width="0.8"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 3 — Skriv besked til fremtidigt selv (intention)
+         ============================================================ -->
+    <section class="state state-intention" id="state-intention" aria-labelledby="intention-title">
+      <div class="state-inner narrow">
+        <h2 id="intention-title" data-i18n="intentionTitle">Skriv en besked til dig selv</h2>
+        <p class="subtitle" data-i18n="intentionSubtitle">Som du modtager når din journey er færdig. Hvad håber du at få ud af de kommende dage? Hvilke spørgsmål er du nysgerrig på?</p>
+
+        <!-- Tekstfeltet: papirlignende baggrund med blød skygge -->
+        <div class="paper-field">
+          <textarea
+            id="intention-text"
+            class="reflection-textarea"
+            rows="8"
+            data-i18n-placeholder="intentionPlaceholder"
+            placeholder="Skriv frit — der er ingen rigtige svar..."
+            aria-labelledby="intention-title"></textarea>
+        </div>
+
+        <!-- Fejlmeddelelse — vises kun ved tomt forsøg -->
+        <p class="error-text" id="intention-error" data-i18n="intentionEmptyError" hidden>Skriv noget før du sender.</p>
+
+        <div class="button-row">
+          <button type="button" class="btn-secondary" id="intention-back-btn" data-i18n="backButton">Tilbage</button>
+          <button type="button" class="btn-primary" id="intention-send-btn" disabled data-i18n="intentionSendButton">Send flaskeposten</button>
+        </div>
+      </div>
+
+      <!-- Flaskepost-animation overlay (vises ved send) -->
+      <div class="bottle-animation" id="bottle-animation" hidden aria-hidden="true">
+        <svg viewBox="0 0 80 120" width="120" height="180">
+          <rect x="33" y="6" width="14" height="14" rx="2" fill="#3b31c8"/>
+          <path d="M26 24 Q26 20 30 20 L50 20 Q54 20 54 24 L54 100 Q54 112 44 112 L36 112 Q26 112 26 100 Z"
+                fill="#3b31c8" opacity="0.7"/>
+          <rect x="33" y="40" width="14" height="60" rx="1" fill="#fffcf9"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 4a — Bro: Inden journey'en starter
+         ============================================================ -->
+    <section class="state state-bridge state-bridge-before" id="state-bridge-before" aria-labelledby="bridge-before-title">
+      <div class="state-inner narrow">
+        <h2 id="bridge-before-title" data-i18n="bridgeBeforeTitle">Din flaskepost er sendt</h2>
+        <p class="body" data-i18n="bridgeBeforeBody">Nu venter den på dig. Klik nedenfor for at begynde din journey på wisethinking.world — den åbner i en ny fane. Når du er færdig kommer du tilbage hertil og åbner din flaskepost.</p>
+
+        <button type="button" class="btn-primary" id="bridge-start-journey-btn" data-i18n="bridgeStartJourneyButton">Begynd din journey</button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 4b — Bro: Venter på at brugeren vender tilbage
+         ============================================================ -->
+    <section class="state state-bridge state-bridge-after" id="state-bridge-after" aria-labelledby="bridge-after-title">
+      <div class="state-inner narrow">
+        <h2 id="bridge-after-title" data-i18n="bridgeAfterTitle">Vi venter på dig</h2>
+        <p class="body" data-i18n="bridgeAfterBody">Når du har gennemført din journey, kan du komme tilbage hertil og åbne din flaskepost. Tag den tid du har brug for.</p>
+
+        <button type="button" class="btn-primary" id="bridge-journey-completed-btn" data-i18n="bridgeJourneyCompletedButton">
+          <svg viewBox="0 0 24 24" width="20" height="20" class="btn-icon" aria-hidden="true">
+            <rect x="10" y="2" width="4" height="4" rx="0.5" fill="currentColor"/>
+            <path d="M8 7 Q8 5 10 5 L14 5 Q16 5 16 7 L16 20 Q16 22 14 22 L10 22 Q8 22 8 20 Z" fill="currentColor" opacity="0.8"/>
+          </svg>
+          <span data-i18n="bridgeJourneyCompletedButton">Journey gennemført</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 5 — Modtagelse af beskeden
+         ============================================================ -->
+    <section class="state state-receive" id="state-receive" aria-labelledby="receive-title">
+      <div class="state-inner narrow">
+        <!-- Åbnings-animation -->
+        <div class="receive-animation" id="receive-animation" aria-hidden="true">
+          <div class="receive-animation-bottle"></div>
+        </div>
+
+        <h2 id="receive-title" data-i18n="receiveTitle">Din flaskepost er ankommet</h2>
+        <p class="date-label" id="receive-date-label">Du skrev denne besked til dig selv den ...</p>
+
+        <!-- Selve beskeden vises på papirlignende baggrund -->
+        <div class="paper-display" id="receive-message-display">
+          <!-- JS sætter teksten ind her -->
+        </div>
+
+        <!-- Invitation glider frem efter 5-7 sekunder -->
+        <div class="receive-invitation" id="receive-invitation" hidden>
+          <p class="subtitle" data-i18n="receiveInvitation">Når du er klar, kan du reflektere over hvad du læser.</p>
+          <button type="button" class="btn-primary" id="receive-continue-btn" data-i18n="receiveContinueButton">Reflektér videre</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 6 — Efter-refleksion (vertikal scroll, tre sektioner)
+         ============================================================ -->
+    <section class="state state-after" id="state-after" aria-labelledby="after-section1-header">
+
+      <!-- Sektion 1 — Den tidligere besked -->
+      <div class="after-section after-section-1">
+        <h3 id="after-section1-header" data-i18n="afterSection1Header">Din besked til dig selv</h3>
+        <p class="date-label" id="after-date-label">Du skrev denne besked til dig selv den ...</p>
+        <div class="paper-display paper-display-compact" id="after-message-display">
+          <!-- JS sætter den oprindelige besked ind her -->
+        </div>
+      </div>
+
+      <!-- Sektion 2 — Emotionelt check-in efter (genbrug af samme slider) -->
+      <div class="after-section after-section-2">
+        <h2 data-i18n="afterSection2Title">Hvordan er det indeni nu?</h2>
+        <p class="subtitle" data-i18n="afterSection2Subtitle">Efter din journey — flyt skibet derhen hvor du står.</p>
+
+        <div class="mood-slider-wrapper">
+          <div class="clouds-layer" id="clouds-after" aria-hidden="true"></div>
+          <div
+            class="mood-slider"
+            id="mood-slider-after"
+            role="slider"
+            tabindex="0"
+            aria-valuemin="1"
+            aria-valuemax="99"
+            aria-valuenow="1"
+            aria-label="Emotionelt check-in efter journey — flyt skibet">
+            <div class="mood-water" id="mood-water-after" aria-hidden="true"></div>
+            <div class="mood-inner-circle">
+              <span class="mood-level-text" id="mood-level-after">Stille vande</span>
+              <span class="mood-percent" id="mood-percent-after">1<span data-i18n="moodPercentLabel">%</span></span>
+              <button type="button" class="btn-primary mood-confirm-btn" id="mood-confirm-after" data-i18n="moodConfirmButton">Bekræft</button>
+            </div>
+            <div class="ship" id="ship-after" aria-hidden="true">
+              <svg viewBox="0 0 30 30" width="30" height="30">
+                <path d="M4 20 L26 20 L23 26 L7 26 Z" fill="#3b31c8"/>
+                <line x1="15" y1="6" x2="15" y2="20" stroke="#3b31c8" stroke-width="1.5"/>
+                <path d="M15 7 L23 19 L15 19 Z" fill="#fffcf9" stroke="#3b31c8" stroke-width="0.8"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sektion 3 — Afsluttende refleksion (låst indtil check-in efter er bekræftet) -->
+      <div class="after-section after-section-3">
+        <h2 data-i18n="afterSection3Title">Reflektér over din rejse</h2>
+        <p class="subtitle" data-i18n="afterSection3Subtitle">Hvad har bevæget sig siden du skrev beskeden til dig selv? Hvad ser du anderledes nu, set i lyset af de perspektiver du har mødt?</p>
+
+        <p class="locked-note" id="after-locked-note" data-i18n="afterSection3LockedNote">Bekræft først dit emotionelle check-in ovenfor.</p>
+
+        <div class="paper-field">
+          <textarea
+            id="after-reflection-text"
+            class="reflection-textarea"
+            rows="8"
+            disabled
+            data-i18n-placeholder="afterReflectionPlaceholder"
+            placeholder="Skriv frit — der er ingen rigtige svar..."
+            aria-label="Afsluttende refleksion"></textarea>
+
+          <!-- Copy-ikon placeret tæt på tekstfeltet -->
+          <button type="button" class="copy-icon-btn" id="after-copy-btn" disabled
+                  data-i18n-aria="afterCopyIconLabel"
+                  aria-label="Kopiér refleksionen">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <rect x="8" y="4" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <rect x="4" y="8" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Inline kopieret-bekræftelse -->
+        <p class="copy-confirm" id="after-copy-confirm" data-i18n="afterCopyConfirm" hidden>Kopieret.</p>
+
+        <button type="button" class="btn-primary" id="after-save-btn" disabled data-i18n="afterSaveButton">Gem refleksion</button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 7 — Send og del
+         ============================================================ -->
+    <section class="state state-share" id="state-share" aria-labelledby="share-title">
+
+      <!-- Brugerens refleksion vises øverst som referencepunkt -->
+      <div class="share-reflection-ref">
+        <p class="ref-label" data-i18n="shareYourReflectionLabel">Din refleksion:</p>
+        <div class="paper-display paper-display-compact" id="share-reflection-display">
+          <!-- JS sætter teksten ind her -->
+        </div>
+      </div>
+
+      <!-- ===== Sektion 1: Delingsmuligheder ===== -->
+      <div class="share-section share-section-1">
+        <h2 id="share-title" data-i18n="shareTitle">Hvad vil du gøre med din refleksion?</h2>
+
+        <div class="share-options-grid">
+          <button type="button" class="btn-secondary share-option-btn" id="share-keep-btn" data-choice="saved">
+            <span data-i18n="shareKeepButton">Behold for mig selv</span>
+          </button>
+
+          <button type="button" class="btn-secondary share-option-btn" id="share-wisethinking-btn" data-choice="wisethinking">
+            <span data-i18n="shareWisethinkingButton">Del med wisethinking</span>
+            <small data-i18n="shareWisethinkingSubLabel">som feedback</small>
+          </button>
+
+          <button type="button" class="btn-secondary share-option-btn" id="share-circle-btn" data-choice="circle">
+            <span data-i18n="shareCircleButton">Del med min omgangskreds</span>
+          </button>
+
+          <button type="button" class="btn-secondary share-option-btn" id="share-chat-btn" data-choice="chat">
+            <span data-i18n="shareChatButton">Tag videre i en samtale</span>
+          </button>
+        </div>
+
+        <!-- Bekræftelses-område — JS udfylder dette efter valg -->
+        <div class="share-confirm" id="share-confirm" hidden>
+          <h3 class="share-confirm-title" id="share-confirm-title"></h3>
+          <p class="share-confirm-body" id="share-confirm-body"></p>
+          <button type="button" class="btn-primary" id="share-confirm-action-btn" hidden></button>
+          <p class="copy-confirm" id="share-copy-confirm" data-i18n="afterCopyConfirm" hidden>Kopieret.</p>
+        </div>
+      </div>
+
+      <!-- ===== Sektion 2: Valgfri ny flaskepost ===== -->
+      <div class="share-section share-section-2" id="future-section" hidden>
+
+        <!-- Trin 1 — invitation -->
+        <div class="future-step future-step-1" id="future-step-1">
+          <h2 data-i18n="futureInviteTitle">Vil du sende dig selv endnu en flaskepost?</h2>
+          <p class="subtitle" data-i18n="futureInviteBody">En besked du modtager på et tidspunkt du selv vælger.</p>
+          <div class="button-row">
+            <button type="button" class="btn-primary" id="future-yes-btn" data-i18n="futureInviteYes">Ja, jeg vil sende en ny</button>
+            <button type="button" class="btn-secondary" id="future-no-btn" data-i18n="futureInviteNo">Nej, ikke nu</button>
+          </div>
+        </div>
+
+        <!-- Trin 2 — skriv og vælg dato -->
+        <div class="future-step future-step-2" id="future-step-2" hidden>
+          <h2 data-i18n="futureWriteTitle">Skriv en besked til dit fremtidige selv</h2>
+          <p class="subtitle" data-i18n="futureWriteSubtitle">Du modtager den på den dato du vælger nedenfor.</p>
+
+          <div class="paper-field">
+            <textarea
+              id="future-text"
+              class="reflection-textarea"
+              rows="8"
+              data-i18n-placeholder="futureWritePlaceholder"
+              placeholder="Skriv frit — der er ingen rigtige svar..."
+              aria-label="Besked til fremtidigt selv"></textarea>
+          </div>
+
+          <div class="future-date-row">
+            <label for="future-date-input" data-i18n="futureDateLabel">Leveringsdato:</label>
+            <input type="date" id="future-date-input" class="date-input" />
+          </div>
+
+          <div class="future-quick-intervals">
+            <span class="quick-intervals-label" data-i18n="futureQuickIntervalsLabel">Eller vælg et hurtigt interval:</span>
+            <button type="button" class="btn-secondary btn-small" data-interval="week" data-i18n="futureInterval1Week">Om 1 uge</button>
+            <button type="button" class="btn-secondary btn-small" data-interval="month" data-i18n="futureInterval1Month">Om 1 måned</button>
+            <button type="button" class="btn-secondary btn-small" data-interval="threemonths" data-i18n="futureInterval3Months">Om 3 måneder</button>
+          </div>
+
+          <p class="error-text" id="future-error" hidden></p>
+
+          <button type="button" class="btn-primary" id="future-send-btn" disabled data-i18n="futureSendButton">Send flaskeposten</button>
+        </div>
+
+        <!-- Trin 3 — bekræftelse efter afsendelse -->
+        <div class="future-step future-step-3" id="future-step-3" hidden>
+          <h2 data-i18n="futureConfirmTitle">Din næste flaskepost er sendt.</h2>
+          <p class="body" id="future-confirm-date-line">Du ville modtage den ...</p>
+          <p class="disclaimer" data-i18n="futureConfirmDisclaimer">⚠ Bemærk: I denne prototype-version leveres beskeden ikke automatisk. Funktionaliteten testes konceptuelt.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 8 — Afsluttende skærm
+         ============================================================ -->
+    <section class="state state-final" id="state-final" aria-labelledby="final-title">
+      <div class="state-inner narrow">
+        <h1 id="final-title" data-i18n="finalScreenTitle">Tak for rejsen.</h1>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== Scripts ===== -->
+  <!-- translations.js skal indlæses FØR script.js, så scriptet kan læse 'translations'-objektet -->
+  <script src="translations.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
