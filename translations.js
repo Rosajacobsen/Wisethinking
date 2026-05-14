@@ -142,6 +142,24 @@ const translations = {
 
     // Afsluttende skærm
     finalScreenTitle: "Tak for rejsen.",
+    seeJourneyButton: "Se din rejse",
+    backToShareButton: "← Tilbage til deling",
+
+    // --- Nulstil ---
+    resetButton: "Nulstil",
+    resetConfirm: "Er du sikker? Al data slettes og du starter forfra.",
+
+    // --- State 6 — Diskret før-check-in reference ---
+    afterBeforeCheckInLabel: "Da du startede:",
+
+    // --- Rejseoversigt ---
+    journeyTitle: "Din rejse",
+    journeySubtitle: "Fra start til slut.",
+    journeyBeforeLabel: "Inden din journey",
+    journeyMessageLabel: "Din besked til dig selv",
+    journeyAfterLabel: "Efter din journey",
+    journeyReflectionLabel: "Din afsluttende refleksion",
+    journeyTimestampFormat: "{date}, kl. {time}",
 
     // --- Fejlbeskeder ---
     errorLocalStorage: "Beklager — din browser tillader ikke at gemme data lokalt. Prototypen kræver localStorage for at fungere. Tjek dine browser-indstillinger eller prøv en anden browser.",
@@ -268,6 +286,24 @@ const translations = {
     futureConfirmDisclaimer: "⚠ Note: In this prototype version, the message is not delivered automatically. The functionality is tested conceptually.",
 
     finalScreenTitle: "Thank you for the journey.",
+    seeJourneyButton: "See your journey",
+    backToShareButton: "← Back to sharing",
+
+    // --- Reset ---
+    resetButton: "Reset",
+    resetConfirm: "Are you sure? All data will be deleted and you will start over.",
+
+    // --- State 6 — Discrete before check-in reference ---
+    afterBeforeCheckInLabel: "When you started:",
+
+    // --- Journey overview ---
+    journeyTitle: "Your journey",
+    journeySubtitle: "From start to finish.",
+    journeyBeforeLabel: "Before your journey",
+    journeyMessageLabel: "Your message to yourself",
+    journeyAfterLabel: "After your journey",
+    journeyReflectionLabel: "Your final reflection",
+    journeyTimestampFormat: "{date} at {time}",
 
     errorLocalStorage: "Sorry — your browser doesn't allow saving data locally. The prototype requires localStorage to work. Check your browser settings or try a different browser.",
 

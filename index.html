@@ -81,6 +81,9 @@
     <span class="tooltip" data-i18n="bottleTooltip">Din flaskepost åbnes når du har gennemført din journey</span>
   </div>
 
+  <!-- Nulstil-knap — diskret, fast placeret nederst til venstre, synlig på alle states -->
+  <button type="button" class="reset-btn" id="reset-btn" data-i18n="resetButton">Nulstil</button>
+
   <!-- =================================================================
        MAIN — alle states ligger her, kun én er .is-active ad gangen
        ================================================================= -->
@@ -262,6 +265,12 @@
         <h2 data-i18n="afterSection2Title">Hvordan er det indeni nu?</h2>
         <p class="subtitle" data-i18n="afterSection2Subtitle">Efter din journey — flyt skibet derhen hvor du står.</p>
 
+        <!-- Diskret reference til check-in fra før journey -->
+        <div class="before-checkin-ref" id="before-checkin-ref">
+          <span data-i18n="afterBeforeCheckInLabel">Da du startede:</span>
+          <span id="before-checkin-summary"></span>
+        </div>
+
         <div class="mood-slider-wrapper">
           <div class="clouds-layer" id="clouds-after" aria-hidden="true"></div>
           <div
@@ -378,7 +387,7 @@
           <h2 data-i18n="futureInviteTitle">Vil du sende dig selv endnu en flaskepost?</h2>
           <p class="subtitle" data-i18n="futureInviteBody">En besked du modtager på et tidspunkt du selv vælger.</p>
           <div class="button-row">
-            <button type="button" class="btn-primary" id="future-yes-btn" data-i18n="futureInviteYes">Ja, jeg vil sende en ny</button>
+            <button type="button" class="btn-secondary" id="future-yes-btn" data-i18n="futureInviteYes">Ja, jeg vil sende en ny</button>
             <button type="button" class="btn-secondary" id="future-no-btn" data-i18n="futureInviteNo">Nej, ikke nu</button>
           </div>
         </div>
@@ -422,6 +431,11 @@
           <p class="disclaimer" data-i18n="futureConfirmDisclaimer">⚠ Bemærk: I denne prototype-version leveres beskeden ikke automatisk. Funktionaliteten testes konceptuelt.</p>
         </div>
       </div>
+
+      <!-- Rejseoversigt-knap — nederst, sizes til tekstens bredde -->
+      <div class="share-journey-link">
+        <button type="button" class="btn-primary" id="share-journey-btn" data-i18n="seeJourneyButton">Se din rejse</button>
+      </div>
     </section>
 
     <!-- ============================================================
@@ -430,6 +444,43 @@
     <section class="state state-final" id="state-final" aria-labelledby="final-title">
       <div class="state-inner narrow">
         <h1 id="final-title" data-i18n="finalScreenTitle">Tak for rejsen.</h1>
+        <button type="button" class="btn-secondary btn-small" id="final-back-btn" data-i18n="backToShareButton">← Tilbage til deling</button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STATE 9 — Rejseoversigt
+         ============================================================ -->
+    <section class="state state-journey" id="state-journey" aria-labelledby="journey-title">
+      <div class="journey-inner">
+
+        <div class="journey-header">
+          <h1 id="journey-title" data-i18n="journeyTitle">Din rejse</h1>
+          <p class="subtitle" data-i18n="journeySubtitle">Fra start til slut.</p>
+        </div>
+
+        <div class="journey-entry">
+          <h3 data-i18n="journeyBeforeLabel">Inden din journey</h3>
+          <p class="journey-checkin-display" id="journey-before-summary"></p>
+        </div>
+
+        <div class="journey-entry">
+          <h3 data-i18n="journeyMessageLabel">Din besked til dig selv</h3>
+          <div class="paper-display" id="journey-message-display"></div>
+        </div>
+
+        <div class="journey-entry">
+          <h3 data-i18n="journeyAfterLabel">Efter din journey</h3>
+          <p class="journey-checkin-display" id="journey-after-summary"></p>
+        </div>
+
+        <div class="journey-entry">
+          <h3 data-i18n="journeyReflectionLabel">Din afsluttende refleksion</h3>
+          <div class="paper-display" id="journey-reflection-display"></div>
+        </div>
+
+        <button type="button" class="btn-secondary" id="journey-back-btn" data-i18n="backButton">Tilbage</button>
+
       </div>
     </section>
 

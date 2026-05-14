@@ -14,7 +14,9 @@
      9.  State 5 — Modtag besked
      10. State 6 — Efter-refleksion
      11. State 7 — Send og del + valgfri ny flaskepost
-     12. Initialisering ved sideindlæsning
+     12. State 8 — Slutskærm
+     13. State 9 — Rejseoversigt
+     14. Initialisering ved sideindlæsning
    ============================================================ */
 
 
@@ -172,7 +174,9 @@ function toggleLanguage() {
    4. STATE-OVERGANGE
    ============================================================ */
 
-// Liste over alle state-id'er i rækkefølge — bruges af resume-logikken
+// Liste over alle state-id'er i rækkefølge — bruges af showState() og resume-logikken.
+// state-journey indgår ikke i resumeAtCorrectState(): den nås kun aktivt via
+// "Se din rejse"-knappen, aldrig automatisk ved genindlæsning.
 const ALL_STATES = [
   'state-welcome',
   'state-mood-before',
@@ -182,7 +186,8 @@ const ALL_STATES = [
   'state-receive',
   'state-after',
   'state-share',
-  'state-final'
+  'state-final',
+  'state-journey'
 ];
 
 /* Vis kun den state med det givne id, skjul alle andre.
@@ -618,6 +623,9 @@ function enterAfterState() {
   document.getElementById('after-message-display').textContent =
     storeData.intentionMessage.text || '';
 
+  // Vis diskret reference til check-in fra State 2
+  refreshBeforeCheckInSummary();
+
   // Reset slider efter til 1% (hvis ikke allerede bekræftet)
   if (storeData.emotionalCheckInAfter.moodPercent === null) {
     setSliderPercent('after', 1);
@@ -719,6 +727,12 @@ function initShareState() {
   document.getElementById('future-no-btn').addEventListener('click', () => {
     // Brugeren springer fremtids-besked over → afsluttende skærm
     showState('state-final');
+  });
+
+  // Rejseoversigt-knap
+  document.getElementById('share-journey-btn').addEventListener('click', () => {
+    populateJourneyState();
+    showState('state-journey');
   });
 
   // === Valgfri ny flaskepost — Trin 2 (skriv + dato) ===
@@ -864,6 +878,70 @@ async function copyAndOpen(url, confirmEl) {
 
 
 /* ============================================================
+   12. STATE 8 — SLUTSKÆRM
+   ============================================================ */
+
+/* Sæt event listeners op for slutskærmen.
+   Tilbage-knappen returnerer til State 7 (deling) fordi "Se din rejse"
+   er placeret der — slutskærmen er en rolig bekræftelse, ikke et
+   navigationspunkt for videre udforskning. */
+function initFinalState() {
+  document.getElementById('final-back-btn').addEventListener('click', () => {
+    showState('state-share');
+  });
+}
+
+
+/* ============================================================
+   13. STATE 9 — REJSEOVERSIGT
+   ============================================================ */
+
+/* Fyld rejseoversigten med data fra hele forløbet: begge check-ins,
+   den originale flaskepost-tekst og den afsluttende refleksion.
+   Designvalg: Kaldes umiddelbart inden showState('state-journey') frem for
+   ved init, så indholdet altid er frisk og afspejler det aktive sprog. */
+function populateJourneyState() {
+  const d = storeData;
+
+  // Før-check-in
+  if (d.emotionalCheckInBefore.moodPercent !== null) {
+    const levelKey = getMoodLevelKey(d.emotionalCheckInBefore.moodPercent);
+    const ts = d.emotionalCheckInBefore.timestamp;
+    const dateStr = ts ? formatDateLabel(t('journeyTimestampFormat'), ts) : '';
+    document.getElementById('journey-before-summary').textContent =
+      t(levelKey) + ' — ' + d.emotionalCheckInBefore.moodPercent + '%'
+      + (dateStr ? '  ·  ' + dateStr : '');
+  }
+
+  // Besked til fremtidigt selv
+  document.getElementById('journey-message-display').textContent =
+    d.intentionMessage.text || '';
+
+  // Efter-check-in
+  if (d.emotionalCheckInAfter.moodPercent !== null) {
+    const levelKey = getMoodLevelKey(d.emotionalCheckInAfter.moodPercent);
+    const ts = d.emotionalCheckInAfter.timestamp;
+    const dateStr = ts ? formatDateLabel(t('journeyTimestampFormat'), ts) : '';
+    document.getElementById('journey-after-summary').textContent =
+      t(levelKey) + ' — ' + d.emotionalCheckInAfter.moodPercent + '%'
+      + (dateStr ? '  ·  ' + dateStr : '');
+  }
+
+  // Afsluttende refleksion
+  document.getElementById('journey-reflection-display').textContent =
+    d.finalReflection.text || '';
+}
+
+/* Sæt event listeners op for rejseoversigten.
+   Den eneste navigation er tilbage til slutskærmen. */
+function initJourneyState() {
+  document.getElementById('journey-back-btn').addEventListener('click', () => {
+    showState('state-final');
+  });
+}
+
+
+/* ============================================================
    HJÆLPEFUNKTIONER — dato/tid-formatering
    ============================================================ */
 
@@ -894,11 +972,22 @@ function refreshDateLabels() {
     const fEl = document.getElementById('future-confirm-date-line');
     if (fEl) fEl.textContent = formatDateLabel(t('futureConfirmDateLine'), futureDate);
   }
+  // Genberegn vejr-niveau-tekst i før-check-in referencen (teksten er sprogafhængig)
+  refreshBeforeCheckInSummary();
+}
+
+/* Opdater den diskrete før-check-in reference i State 6.
+   Kaldes ved indgang til State 6 og ved sprogskift. */
+function refreshBeforeCheckInSummary() {
+  const el = document.getElementById('before-checkin-summary');
+  if (!el || storeData.emotionalCheckInBefore.moodPercent === null) return;
+  const levelKey = getMoodLevelKey(storeData.emotionalCheckInBefore.moodPercent);
+  el.textContent = t(levelKey) + ' — ' + storeData.emotionalCheckInBefore.moodPercent + '%';
 }
 
 
 /* ============================================================
-   12. INITIALISERING VED SIDEINDLÆSNING
+   14. INITIALISERING VED SIDEINDLÆSNING
    ============================================================ */
 
 function init() {
@@ -925,6 +1014,16 @@ function init() {
   initReceiveState();
   initAfterState();
   initShareState();
+  initFinalState();   // State 8 — Slutskærm
+  initJourneyState(); // State 9 — Rejseoversigt
+
+  // Nulstil-knap — sletter al data og genindlæser siden efter brugerens confirm()
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm(t('resetConfirm'))) {
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+  });
 
   // Genopret eksisterende slider-positioner hvis brugeren vender tilbage
   if (storeData.emotionalCheckInBefore.moodPercent !== null) {
@@ -948,9 +1047,7 @@ function init() {
   resumeAtCorrectState();
 }
 
-// Start når DOM er færdig-loadet
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+// Scripts i bunden af <body> kører synkront — DOM er fuldt tilgængelig her.
+// Kald init() direkte i stedet for at vente på window.load, som blokeres
+// af eksterne ressourcer (fx Google Fonts) der måske aldrig svarer.
+init();

@@ -52,6 +52,13 @@
   padding: 0;
 }
 
+/* Browserens user-agent [hidden]=display:none overskrives af forfatter-CSS
+   der sætter display:flex/block direkte på elementer (fx .bottle-animation).
+   !important sikrer at hidden-attributten altid vinder uanset specificitet. */
+[hidden] {
+  display: none !important;
+}
+
 html, body {
   height: 100%;
   /* Subtil radial gradient — minder om den blide overgang fra hav til himmel
@@ -178,6 +185,35 @@ html, body {
 }
 .sealed-bottle-corner:hover .tooltip {
   opacity: 1;
+}
+
+
+/* === Nulstil-knap (fast, nederst til venstre) ===
+   Ghost-styling (ingen baggrund, ingen border) og lav opacity for ikke at
+   konkurrere med sidens primære handlinger — men stadig synlig for testere
+   der har brug for at nulstille og starte forfra. */
+.reset-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.75rem;
+  z-index: 100;
+  background: none;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+  padding: 0.25rem 0.5rem;
+}
+.reset-btn:hover {
+  opacity: 0.8;
+}
+.reset-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  opacity: 0.8;
 }
 
 
@@ -726,6 +762,23 @@ h3 {
 }
 
 
+/* === Diskret reference til før-check-in i State 6 ===
+   Viser vejr-niveau og procent fra State 2 som et stille referencepunkt
+   mens brugeren positionerer sin efterfølgende slider — så hun kan
+   mærke kontrasten uden at teksten dominerer slider-interaktionen.
+   Lav opacity og lille skrift holder elementet informativt, ikke forstyrrende. */
+.before-checkin-ref {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  opacity: 0.5;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+
 /* === State 7 — delingsmuligheder === */
 .state-share {
   max-width: 900px;
@@ -768,6 +821,13 @@ h3 {
   width: 100%;
   min-height: 64px;
   padding: 0.8rem 1.2rem;
+}
+/* Centrerer "Se din rejse"-knappen i bunden af State 7.
+   btn-primary bruger display:inline-flex og sizes naturligt til tekstens bredde —
+   text-align:center er tilstrækkeligt fordi .state-share ikke er et flex-element. */
+.share-journey-link {
+  text-align: center;
+  padding: 2rem 0 0.5rem;
 }
 
 .share-confirm {
@@ -847,4 +907,50 @@ h3 {
 .state-final h1 {
   font-style: italic;
   color: var(--color-deep-blue);
+}
+
+
+/* === State 9 — Rejseoversigt ===
+   Vertikal scroll-layout der sammenfatter hele forløbet: begge check-ins,
+   den originale flaskepost-tekst og den afsluttende refleksion.
+   Designvalg: Bruger samme papir-baggrund (.paper-display) og linje-separatorer
+   som State 6 for visuel konsistens på tværs af refleksions-skærmene. */
+.state-journey {
+  max-width: 720px;
+  padding: 3rem 1rem 4rem;
+}
+.journey-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+}
+.journey-header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.journey-entry {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid rgba(59, 49, 200, 0.08);
+  text-align: center;
+}
+.journey-entry:last-of-type {
+  border-bottom: none;
+  padding-bottom: 2rem;
+}
+.journey-checkin-display {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
 }
