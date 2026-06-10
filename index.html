@@ -95,7 +95,7 @@
     <section class="state state-welcome is-active" id="state-welcome" aria-labelledby="welcome-title">
       <div class="state-inner narrow">
         <h1 id="welcome-title" data-i18n="welcomeTitle">Velkommen til din flaskepost</h1>
-        <p class="subtitle" data-i18n="welcomeSubtitle">Et rum til refleksion før og efter din Reflection Journey.</p>
+        <p class="subtitle" data-i18n="welcomeSubtitle">Et rum til refleksion før og efter din Reflection Journey, Finding Your Professional Path.</p>
         <p class="body" data-i18n="welcomeBody">Inden du begynder, skriver du en besked til dig selv — en flaskepost, du modtager når journey'en er færdig. Bagefter læser du den igen og reflekterer over hvad der har ændret sig undervejs.</p>
         <p class="time-estimate" data-i18n="welcomeTimeEstimate">Du kan bruge omkring 10 minutter her før din journey og 5–10 minutter efter.</p>
 
@@ -111,7 +111,7 @@
          ============================================================ -->
     <section class="state state-mood" id="state-mood-before" aria-labelledby="mood-before-title">
       <div class="state-inner">
-        <h2 id="mood-before-title" data-i18n="moodBeforeTitle">Hvordan er det indeni nu?</h2>
+        <h2 id="mood-before-title" data-i18n="moodBeforeTitle">Hvordan føles din situation lige nu?</h2>
         <p class="subtitle" data-i18n="moodBeforeSubtitle">Flyt skibet derhen hvor du står.</p>
 
         <!-- Slider-komponenten — JS bygger skib, vand og skyer ind i denne -->
@@ -131,7 +131,7 @@
             aria-label="Emotionelt check-in slider — flyt skibet med musen eller piletasterne">
             <div class="mood-water" id="mood-water-before" aria-hidden="true"></div>
             <div class="mood-inner-circle">
-              <span class="mood-level-text" id="mood-level-before">Stille vande</span>
+              <span class="mood-level-text" id="mood-level-before">Overskuelig</span>
               <span class="mood-percent" id="mood-percent-before">1<span data-i18n="moodPercentLabel">%</span></span>
               <button type="button" class="btn-primary mood-confirm-btn" id="mood-confirm-before" data-i18n="moodConfirmButton">Bekræft</button>
             </div>
@@ -262,7 +262,7 @@
 
       <!-- Sektion 2 — Emotionelt check-in efter (genbrug af samme slider) -->
       <div class="after-section after-section-2">
-        <h2 data-i18n="afterSection2Title">Hvordan er det indeni nu?</h2>
+        <h2 data-i18n="afterSection2Title">Hvordan føles din situation lige nu?</h2>
         <p class="subtitle" data-i18n="afterSection2Subtitle">Efter din journey — flyt skibet derhen hvor du står.</p>
 
         <!-- Diskret reference til check-in fra før journey -->
@@ -339,17 +339,18 @@
          ============================================================ -->
     <section class="state state-share" id="state-share" aria-labelledby="share-title">
 
-      <!-- Brugerens refleksion vises øverst som referencepunkt -->
+      <!-- ===== Sektion 1: Delingsmuligheder ===== -->
+      <div class="share-section share-section-1">
+        <h2 id="share-title" data-i18n="shareTitle">Hvad vil du gøre med din refleksion?</h2>
+        <p class="subtitle" data-i18n=""></p>
+       
+        <!-- ===Den refleksion som man har skrevet===-->
       <div class="share-reflection-ref">
         <p class="ref-label" data-i18n="shareYourReflectionLabel">Din refleksion:</p>
         <div class="paper-display paper-display-compact" id="share-reflection-display">
           <!-- JS sætter teksten ind her -->
         </div>
       </div>
-
-      <!-- ===== Sektion 1: Delingsmuligheder ===== -->
-      <div class="share-section share-section-1">
-        <h2 id="share-title" data-i18n="shareTitle">Hvad vil du gøre med din refleksion?</h2>
 
         <div class="share-options-grid">
           <button type="button" class="btn-secondary share-option-btn" id="share-keep-btn" data-choice="saved">

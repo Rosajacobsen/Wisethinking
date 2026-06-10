@@ -19,7 +19,7 @@
 
   /* Tekstfarver */
   --color-text-primary: #222222;
-  --color-text-secondary: #5a5a5a;
+  --color-text-secondary: #363636;
 
   /* Baggrunde */
   --color-bg: #e4e6f2;          /* Lyseblå/lavendel hovedbaggrund */
@@ -706,16 +706,16 @@ h3 {
   font-size: 1.5rem;
   font-weight: 500;
   color: var(--color-text-primary);
-  transition: opacity 0.3s ease;
+  transition: opacity 1.5s ease;
 }
 
 /* Procent-tal vises men fader når musen hovrer over slideren */
 .mood-percent {
   font-family: var(--font-ui);
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   color: var(--color-text-secondary);
-  opacity: 0.65;
-  transition: opacity 0.3s ease;
+  opacity: 0.95;
+  transition: opacity 2.5s ease;
 }
 .mood-slider-wrapper:hover .mood-percent {
   opacity: 0.15;
