@@ -31,7 +31,7 @@ const translations = {
 
     // --- State 1 — Velkomst ---
     welcomeTitle: "Velkommen til din flaskepost",
-    welcomeSubtitle: "Et rum til refleksion før og efter din Reflection Journey, Finding Your Professional Path.",
+    welcomeSubtitle: "Et rum til refleksion før og efter din Reflection Journey",
     welcomeBody: "Inden du begynder, skriver du en besked til dig selv — en flaskepost, du modtager når journey'en er færdig. Bagefter læser du den igen og reflekterer over hvad der har ændret sig undervejs.",
     welcomeTimeEstimate: "Du kan bruge omkring 10 minutter her før din journey og 5–10 minutter efter.",
     welcomeStartButton: "Begynd",
@@ -187,7 +187,7 @@ const translations = {
     welcomePrivacyNote: "Everything you write stays only in your browser.",
 
     // --- State 2 — Emotional check-in before ---
-    moodBeforeTitle: "How are you feeling about your situation right now?",
+    moodBeforeTitle: "How is it inside right now",
     moodBeforeSubtitle: "Move the ship to where you are.",
     moodConfirmButton: "Confirm",
     moodPercentLabel: "%",
