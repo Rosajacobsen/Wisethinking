@@ -706,16 +706,16 @@ h3 {
   font-size: 1.5rem;
   font-weight: 500;
   color: var(--color-text-primary);
-  transition: opacity 0.3s ease;
+  transition: opacity 2s ease;
 }
 
 /* Procent-tal vises men fader når musen hovrer over slideren */
 .mood-percent {
   font-family: var(--font-ui);
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   color: var(--color-text-secondary);
-  opacity: 0.65;
-  transition: opacity 0.3s ease;
+  opacity: 0.9;
+  transition: opacity 2s ease;
 }
 .mood-slider-wrapper:hover .mood-percent {
   opacity: 0.15;
