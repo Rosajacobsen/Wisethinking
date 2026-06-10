@@ -38,17 +38,17 @@ const translations = {
     welcomePrivacyNote: "Alt du skriver gemmes kun lokalt i din browser.",
 
     // --- State 2 — Emotional check-in før ---
-    moodBeforeTitle: "Hvordan føles din situation lige nu?",
+    moodBeforeTitle: "Hvordan har du det indeni nu?",
     moodBeforeSubtitle: "Flyt skibet derhen hvor du står.",
     moodConfirmButton: "Bekræft",   // Knap i midten af slider-cirklen
     moodPercentLabel: "%",          // Suffix til procent-visning
 
     // Slider-niveauer (5 vejr-niveauer) — brugt af både State 2 og State 6
-    moodLevel1: "Overskuelig",          // 1–20%
-    moodLevel2: "Lidt udfordrende",     // 21–40%
-    moodLevel3: "Udfordrende",          // 41–60%
-    moodLevel4: "Meget udfordrende",    // 61–80%
-    moodLevel5: "Overvældende",         // 81–99%
+    moodLevel1: "Stille vande",                  // 1–20%
+    moodLevel2: "Krusninger på overfladen",     // 21–40%
+    moodLevel3: "Bølger i bevægelse",           // 41–60%
+    moodLevel4: "Vinden tager til",             // 61–80%
+    moodLevel5: "Storm i sindet",               // 81–99%
 
     // --- State 3 — Skriv besked til fremtidigt selv ---
     intentionTitle: "Skriv en besked til dig selv",
@@ -79,7 +79,7 @@ const translations = {
     afterSection1Header: "Din besked til dig selv",
     afterSection1DateLabel: "Du skrev denne besked til dig selv den {date}, kl. {time}",
 
-    afterSection2Title: "Hvordan føles din situation lige nu?",
+    afterSection2Title: "Hvordan har du det inden i nu?",
     afterSection2Subtitle: "Efter din journey — flyt skibet derhen hvor du står.",
 
     afterSection3Title: "Reflektér over din rejse",
@@ -180,7 +180,7 @@ const translations = {
 
     // --- State 1 — Welcome ---
     welcomeTitle: "Welcome to your bottle",
-    welcomeSubtitle: "A space for reflection before and after your Reflection Journey, Finding Your Professional Path.",
+    welcomeSubtitle: "A space for reflection before and after your Reflection Journey",
     welcomeBody: "Before you begin, you write a message to yourself — a bottle you receive once your journey is complete. Afterwards you read it again and reflect on what has shifted along the way.",
     welcomeTimeEstimate: "You can spend around 10 minutes here before your journey, and 5–10 minutes after.",
     welcomeStartButton: "Begin",
@@ -193,11 +193,11 @@ const translations = {
     moodPercentLabel: "%",
 
     // Slider-niveauer — idiomatisk oversættelse (samme rolige, billedlige kvalitet)
-    moodLevel1: "Manageable",
-    moodLevel2: "Slightly Challenging",
-    moodLevel3: "Challenging",
-    moodLevel4: "Higly Challenging",
-    moodLevel5: "Overwhelming",
+    moodLevel1: "Still waters",
+    moodLevel2: "ripples on the surface",
+    moodLevel3: "Waves in motion",
+    moodLevel4: "The wind picks up",
+    moodLevel5: "Storm in the mind",
 
     // --- State 3 — Write message to future self ---
     intentionTitle: "Write a message to yourself",
@@ -226,7 +226,7 @@ const translations = {
     afterSection1Header: "Your message to yourself",
     afterSection1DateLabel: "You wrote this message to yourself on {date} at {time}",
 
-    afterSection2Title: "How are you feeling about your situation right now?",
+    afterSection2Title: "How is it inside right now?",
     afterSection2Subtitle: "After your journey — move the ship to where you are.",
 
     afterSection3Title: "Reflect on your journey",
